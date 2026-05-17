@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-
+import { useState, useRef, useEffect, ReactElement } from "react";
+import MyCrops from "./MyCrops";
+import { useRouter } from "next/navigation";
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Section = "overview" | "crops" | "disease" | "weather" | "scheduler" | "chatbot";
 
@@ -166,82 +167,6 @@ function Overview() {
   );
 }
 
-function MyCrops() {
-  const [selected, setSelected] = useState<number | null>(null);
-  return (
-    <div className="view-root">
-      <div className="view-header">
-        <div>
-          <h1 className="view-title">My Crops</h1>
-          <p className="view-sub">Track all active crops and field conditions.</p>
-        </div>
-        <button className="action-btn">+ Add Crop</button>
-      </div>
-      <div className="crops-table">
-        <div className="crops-thead">
-          {["Crop","Field","Area","Stage","Health","Days Left","Status"].map(h => (
-            <div key={h} className="crops-th">{h}</div>
-          ))}
-        </div>
-        {CROPS.map(c => (
-          <div
-            key={c.id}
-            className={`crops-row ${selected === c.id ? "selected" : ""}`}
-            onClick={() => setSelected(selected === c.id ? null : c.id)}
-          >
-            <div className="crops-td crop-name">{c.name}</div>
-            <div className="crops-td muted">{c.field}</div>
-            <div className="crops-td muted">{c.area}</div>
-            <div className="crops-td">
-              <span className="stage-pill">{c.stage}</span>
-            </div>
-            <div className="crops-td">
-              <div className="health-bar-wrap">
-                <div className="health-bar" style={{
-                  width:`${c.health}%`,
-                  background: c.health > 80 ? "#4caf6e" : c.health > 65 ? "#e8a245" : "#e05c5c"
-                }} />
-              </div>
-              <span className="health-num">{c.health}%</span>
-            </div>
-            <div className="crops-td muted">{c.daysLeft}d</div>
-            <div className="crops-td">
-              <span className={`status-dot ${c.status}`} />
-              <span className="muted" style={{fontSize:12}}>
-                {c.status === "good" ? "Healthy" : c.status === "warn" ? "Monitor" : "Action needed"}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {selected && (() => {
-        const c = CROPS.find(x => x.id === selected)!;
-        return (
-          <div className="crop-detail">
-            <div className="chart-box-title">{c.name} — {c.field} Detail</div>
-            <div className="crop-detail-grid">
-              {[
-                ["Crop","name"],["Field","field"],["Area","area"],["Stage","stage"],
-                ["Health",`${c.health}%`],["Days to Harvest",`${c.daysLeft} days`]
-              ].map(([l,v]) => (
-                <div key={l} className="crop-detail-cell">
-                  <div className="crop-detail-lbl">{l}</div>
-                  <div className="crop-detail-val">{(c as any)[v] ?? v}</div>
-                </div>
-              ))}
-            </div>
-            <div className="crop-actions">
-              <button className="action-btn">📋 View History</button>
-              <button className="action-btn amber">⚠️ Report Issue</button>
-              <button className="action-btn">🔬 Run Disease Scan</button>
-            </div>
-          </div>
-        );
-      })()}
-    </div>
-  );
-}
 
 function DiseaseDetection() {
   const [file, setFile] = useState<File | null>(null);
@@ -676,15 +601,22 @@ function AIChatbot() {
 export default function Dashboard() {
   const [active, setActive] = useState<Section>("overview");
   const [collapsed, setCollapsed] = useState(false);
+  const router = useRouter();
 
-  const views: Record<Section, JSX.Element> = {
-    overview: <Overview />,
-    crops: <MyCrops />,
-    disease: <DiseaseDetection />,
-    weather: <Weather />,
-    scheduler: <Scheduler />,
-    chatbot: <AIChatbot />,
-  };
+const handleLogout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  router.push("/login");
+};
+
+  const views: Record<Section, ReactElement> = {
+  overview: <Overview />,
+  crops: <MyCrops />,
+  disease: <DiseaseDetection />,
+  weather: <Weather />,
+  scheduler: <Scheduler />,
+  chatbot: <AIChatbot />,
+};
 
   return (
     <div className="dash-root">
@@ -1246,16 +1178,34 @@ export default function Dashboard() {
         </nav>
 
         <div className="sidebar-bottom">
-          <div className="user-row">
-            <div className="user-avatar">AA</div>
-            {!collapsed && (
-              <div>
-                <div className="user-name">Aashu</div>
-                <div className="user-role">Farmer</div>
-              </div>
-            )}
-          </div>
+  <div className="user-row">
+    <div className="user-avatar">
+      {typeof window !== "undefined"
+        ? JSON.parse(localStorage.getItem("user") || "{}")?.name?.slice(0,2).toUpperCase() || "AA"
+        : "AA"}
+    </div>
+    {!collapsed && (
+      <div style={{ flex: 1, overflow: "hidden" }}>
+        <div className="user-name">
+          {typeof window !== "undefined"
+            ? JSON.parse(localStorage.getItem("user") || "{}")?.name || "Farmer"
+            : "Farmer"}
         </div>
+        <div className="user-role">Farmer</div>
+      </div>
+    )}
+  </div>
+
+  <div
+    className="nav-item"
+    onClick={handleLogout}
+    title="Logout"
+    style={{ marginTop: 4, color: "var(--red)" }}
+  >
+    <span className="nav-icon">🚪</span>
+    {!collapsed && <span className="nav-label">Logout</span>}
+  </div>
+</div>
       </aside>
 
       {/* MAIN CONTENT */}
