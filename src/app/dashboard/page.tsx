@@ -7,6 +7,8 @@ import DiseaseDetection from "./DiseaseDetection";
 import Weather from "./Weather";
 import Scheduler from "./Scheduler";
 import ProfileModal from "./ProfileModal";
+import SettingsModal from "./SettingsModal";
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Section = "overview" | "crops" | "disease" | "weather" | "scheduler" | "chatbot";
@@ -251,6 +253,7 @@ export default function Dashboard() {
   const [userName, setUserName]   = useState("AA");
   const [userFullName, setUserFullName] = useState("Farmer");
   const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const router = useRouter();
 
   // ── Fix hydration: only read localStorage on client after mount ──
@@ -594,8 +597,8 @@ export default function Dashboard() {
             <span> · Farmify AI</span>
           </div>
           <div className="topbar-right">
-            <div className="topbar-icon-btn notif-dot" title="Notifications">🔔</div>
-            <div className="topbar-icon-btn" title="Settings">⚙️</div>
+            
+            <div className="topbar-icon-btn" title="Settings" onClick={() => setSettingsOpen(true)} style={{cursor:"pointer"}}>⚙️</div>
             {/* topbar avatar also uses state — no hydration issue */}
             <div
   className="user-avatar"
@@ -619,6 +622,9 @@ export default function Dashboard() {
     onClose={() => setProfileOpen(false)}
     onProfileUpdate={handleProfileUpdate}
   />
+)}
+{settingsOpen && (
+  <SettingsModal onClose={() => setSettingsOpen(false)} />
 )}
           </div>
         </div>
