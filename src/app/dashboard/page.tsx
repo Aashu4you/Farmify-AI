@@ -4,18 +4,12 @@ import { useState, useRef, useEffect, ReactElement } from "react";
 import MyCrops from "./MyCrops";
 import { useRouter } from "next/navigation";
 import DiseaseDetection from "./DiseaseDetection";
+import Weather from "./Weather";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Section = "overview" | "crops" | "disease" | "weather" | "scheduler" | "chatbot";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
-const CROPS = [
-  { id: 1, name: "Wheat", field: "Field 1", area: "3.2 ac", stage: "Flowering", health: 92, daysLeft: 24, status: "good" },
-  { id: 2, name: "Rice", field: "Field 2", area: "2.8 ac", stage: "Tillering", health: 78, daysLeft: 55, status: "warn" },
-  { id: 3, name: "Maize", field: "Field 3", area: "1.5 ac", stage: "Germination", health: 95, daysLeft: 80, status: "good" },
-  { id: 4, name: "Soybean", field: "Field 4", area: "2.1 ac", stage: "Pod Fill", health: 61, daysLeft: 18, status: "bad" },
-  { id: 5, name: "Cotton", field: "Field 5", area: "4.0 ac", stage: "Boll Dev.", health: 88, daysLeft: 42, status: "good" },
-];
-
 const TASKS = [
   { id: 1, title: "Irrigate Field 3 — Soil moisture critical", time: "Today, 6:00 PM", type: "irrigation", done: false },
   { id: 2, title: "Apply NPK fertilizer — Field 1 Wheat", time: "Tomorrow, 7:00 AM", type: "fertilizer", done: false },
@@ -24,50 +18,38 @@ const TASKS = [
   { id: 5, title: "Soil test — Field 2 Rice", time: "Fri, 10:00 AM", type: "soil", done: false },
 ];
 
-const WEATHER_DAYS = [
-  { day: "Today", icon: "⛅", high: 32, low: 22, rain: 10 },
-  { day: "Tue", icon: "☀️", high: 34, low: 24, rain: 0 },
-  { day: "Wed", icon: "🌧️", high: 28, low: 20, rain: 85 },
-  { day: "Thu", icon: "🌦️", high: 29, low: 21, rain: 40 },
-  { day: "Fri", icon: "☀️", high: 35, low: 25, rain: 5 },
-  { day: "Sat", icon: "⛅", high: 31, low: 22, rain: 15 },
-  { day: "Sun", icon: "☀️", high: 33, low: 23, rain: 0 },
-];
-
 const YIELD_DATA = [38, 52, 45, 68, 60, 78, 72, 88, 82, 94, 90, 96];
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
-  { id: "overview",   label: "Overview",         icon: "◈" },
-  { id: "crops",      label: "My Crops",          icon: "🌾" },
-  { id: "disease",    label: "Disease Detection", icon: "🔬" },
-  { id: "weather",    label: "Weather",           icon: "🌦️" },
-  { id: "scheduler",  label: "Scheduler",         icon: "📅" },
-  { id: "chatbot",    label: "AI Chatbot",        icon: "💬" },
+  { id: "overview",  label: "Overview",         icon: "◈"  },
+  { id: "crops",     label: "My Crops",          icon: "🌾" },
+  { id: "disease",   label: "Disease Detection", icon: "🔬" },
+  { id: "weather",   label: "Weather",           icon: "🌦️" },
+  { id: "scheduler", label: "Scheduler",         icon: "📅" },
+  { id: "chatbot",   label: "AI Chatbot",        icon: "💬" },
 ];
 
-// ─── Sub-views ────────────────────────────────────────────────────────────────
-
+// ─── Overview ─────────────────────────────────────────────────────────────────
 function Overview() {
   return (
     <div className="view-root">
       <div className="view-header">
         <div>
-          <h1 className="view-title">Good morning, Aashu 👋</h1>
+          <h1 className="view-title">Good morning 👋</h1>
           <p className="view-sub">Here's what's happening on your farm today.</p>
         </div>
-        <div className="view-date">Sun, 17 May 2026</div>
+        <div className="view-date">{new Date().toLocaleDateString("en-IN", { weekday:"short", day:"numeric", month:"short", year:"numeric" })}</div>
       </div>
 
-      {/* Stat cards */}
       <div className="stats-grid">
         {[
-          { icon: "🌾", label: "Active Crops", value: "8", delta: "+2 this month", color: "green" },
-          { icon: "🌱", label: "Avg Soil Health", value: "83%", delta: "▲ Good", color: "green" },
-          { icon: "⚠️", label: "Disease Alerts", value: "1", delta: "Field 4 Soybean", color: "amber" },
-          { icon: "📈", label: "Est. Revenue", value: "₹2.4L", delta: "+18% YoY", color: "green" },
-          { icon: "💧", label: "Water Used", value: "3,200L", delta: "−30% vs last week", color: "green" },
-          { icon: "📅", label: "Pending Tasks", value: "4", delta: "2 urgent today", color: "amber" },
+          { icon:"🌾", label:"Active Crops",    value:"8",     delta:"+2 this month",       color:"green" },
+          { icon:"🌱", label:"Avg Soil Health", value:"83%",   delta:"▲ Good",              color:"green" },
+          { icon:"⚠️", label:"Disease Alerts",  value:"1",     delta:"Field 4 Soybean",     color:"amber" },
+          { icon:"📈", label:"Est. Revenue",    value:"₹2.4L", delta:"+18% YoY",            color:"green" },
+          { icon:"💧", label:"Water Used",      value:"3,200L",delta:"−30% vs last week",   color:"green" },
+          { icon:"📅", label:"Pending Tasks",   value:"4",     delta:"2 urgent today",      color:"amber" },
         ].map(s => (
           <div key={s.label} className="stat-card">
             <div className="stat-icon">{s.icon}</div>
@@ -78,9 +60,7 @@ function Overview() {
         ))}
       </div>
 
-      {/* Charts row */}
       <div className="charts-row">
-        {/* Yield bar chart */}
         <div className="chart-box wide">
           <div className="chart-box-header">
             <span className="chart-box-title">Yield Forecast — 2026</span>
@@ -90,10 +70,7 @@ function Overview() {
             {YIELD_DATA.map((v, i) => (
               <div key={i} className="yield-col">
                 <div className="yield-bar-wrap">
-                  <div
-                    className="yield-bar"
-                    style={{ height: `${v}%`, opacity: i === 11 ? 1 : 0.55 + i * 0.04 }}
-                  />
+                  <div className="yield-bar" style={{ height:`${v}%`, opacity: i === 11 ? 1 : 0.55 + i * 0.04 }} />
                 </div>
                 <div className="yield-month">{MONTHS[i]}</div>
               </div>
@@ -101,7 +78,6 @@ function Overview() {
           </div>
         </div>
 
-        {/* Crop health donut */}
         <div className="chart-box">
           <div className="chart-box-header">
             <span className="chart-box-title">Crop Health</span>
@@ -109,12 +85,9 @@ function Overview() {
           <div className="donut-wrap">
             <svg viewBox="0 0 120 120" className="donut-svg">
               <circle cx="60" cy="60" r="44" fill="none" stroke="rgba(76,175,110,0.1)" strokeWidth="12" />
-              <circle cx="60" cy="60" r="44" fill="none" stroke="#4caf6e" strokeWidth="12"
-                strokeDasharray="184 92" strokeDashoffset="69" strokeLinecap="round" />
-              <circle cx="60" cy="60" r="44" fill="none" stroke="#e8a245" strokeWidth="12"
-                strokeDasharray="55 221" strokeDashoffset="-115" strokeLinecap="round" />
-              <circle cx="60" cy="60" r="44" fill="none" stroke="#e05c5c" strokeWidth="12"
-                strokeDasharray="37 239" strokeDashoffset="-170" strokeLinecap="round" />
+              <circle cx="60" cy="60" r="44" fill="none" stroke="#4caf6e" strokeWidth="12" strokeDasharray="184 92" strokeDashoffset="69" strokeLinecap="round" />
+              <circle cx="60" cy="60" r="44" fill="none" stroke="#e8a245" strokeWidth="12" strokeDasharray="55 221" strokeDashoffset="-115" strokeLinecap="round" />
+              <circle cx="60" cy="60" r="44" fill="none" stroke="#e05c5c" strokeWidth="12" strokeDasharray="37 239" strokeDashoffset="-170" strokeLinecap="round" />
             </svg>
             <div className="donut-center">
               <span className="donut-val">83%</span>
@@ -133,7 +106,6 @@ function Overview() {
         </div>
       </div>
 
-      {/* Alerts + recent tasks */}
       <div className="bottom-row">
         <div className="alert-box">
           <div className="chart-box-title" style={{marginBottom:16}}>Active Alerts</div>
@@ -168,89 +140,7 @@ function Overview() {
   );
 }
 
-
-function Weather() {
-  return (
-    <div className="view-root">
-      <div className="view-header">
-        <div>
-          <h1 className="view-title">Weather</h1>
-          <p className="view-sub">Real-time conditions and 7-day forecast for your farm location.</p>
-        </div>
-        <div className="location-tag">📍 Indore, MP</div>
-      </div>
-
-      {/* Current conditions */}
-      <div className="weather-hero">
-        <div className="weather-main">
-          <div className="weather-icon-big">⛅</div>
-          <div className="weather-temp">32°C</div>
-          <div className="weather-condition">Partly Cloudy</div>
-          <div className="weather-feels">Feels like 35°C · Humidity 68%</div>
-        </div>
-        <div className="weather-metrics">
-          {[
-            {icon:"💨",label:"Wind Speed",val:"14 km/h NW"},
-            {icon:"🌡️",label:"UV Index",val:"High (8)"},
-            {icon:"👁️",label:"Visibility",val:"9 km"},
-            {icon:"📊",label:"Pressure",val:"1008 hPa"},
-            {icon:"💧",label:"Humidity",val:"68%"},
-            {icon:"🌅",label:"Sunrise",val:"5:48 AM"},
-          ].map(m => (
-            <div key={m.label} className="weather-metric-card">
-              <div className="wm-icon">{m.icon}</div>
-              <div className="wm-lbl">{m.label}</div>
-              <div className="wm-val">{m.val}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 7-day forecast */}
-      <div className="forecast-section">
-        <div className="chart-box-title" style={{marginBottom:16}}>7-Day Forecast</div>
-        <div className="forecast-grid">
-          {WEATHER_DAYS.map(d => (
-            <div key={d.day} className="forecast-card">
-              <div className="fc-day">{d.day}</div>
-              <div className="fc-icon">{d.icon}</div>
-              <div className="fc-high">{d.high}°</div>
-              <div className="fc-low">{d.low}°</div>
-              <div className="fc-rain-wrap">
-                <div className="fc-rain-bar">
-                  <div className="fc-rain-fill" style={{width:`${d.rain}%`}} />
-                </div>
-                <div className="fc-rain-pct">{d.rain}%</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Farm advisories */}
-      <div className="advisory-section">
-        <div className="chart-box-title" style={{marginBottom:16}}>Farm Advisories</div>
-        <div className="advisory-grid">
-          {[
-            {icon:"🌧️",color:"amber",title:"Heavy Rain Wednesday",desc:"Delay fertilizer application. Cover seedlings in Field 3 nursery."},
-            {icon:"☀️",color:"red",title:"High UV Thursday–Friday",desc:"Risk of sunscald on Cotton bolls. Consider reflective mulch."},
-            {icon:"💧",color:"green",title:"Irrigation Window",desc:"Optimal irrigation window: Tuesday 6–8 AM before heat sets in."},
-            {icon:"🌬️",color:"green",title:"Good Spray Conditions",desc:"Low wind Monday morning. Ideal for pesticide application on Field 4."},
-          ].map(a => (
-            <div key={a.title} className={`advisory-card ${a.color}`}>
-              <div className="advisory-icon">{a.icon}</div>
-              <div>
-                <div className="advisory-title">{a.title}</div>
-                <div className="advisory-desc">{a.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
+// ─── Scheduler ────────────────────────────────────────────────────────────────
 function Scheduler() {
   const [tasks, setTasks] = useState(TASKS);
   const [newTask, setNewTask] = useState("");
@@ -265,7 +155,7 @@ function Scheduler() {
   };
 
   const typeIcon: Record<string, string> = {
-    irrigation: "💧", fertilizer: "🌿", spray: "🧪", harvest: "🌾", soil: "🪱"
+    irrigation:"💧", fertilizer:"🌿", spray:"🧪", harvest:"🌾", soil:"🪱"
   };
 
   return (
@@ -278,7 +168,6 @@ function Scheduler() {
       </div>
 
       <div className="scheduler-layout">
-        {/* Task list */}
         <div className="task-list-col">
           <div className="add-task-row">
             <input
@@ -294,7 +183,7 @@ function Scheduler() {
           <div className="tasks-section-label">Upcoming</div>
           {tasks.filter(t => !t.done).map(t => (
             <div key={t.id} className="sched-task-row" onClick={() => toggle(t.id)}>
-              <span className="sched-check">{t.done ? "✓" : "○"}</span>
+              <span className="sched-check">○</span>
               <span className="task-type-icon">{typeIcon[t.type] || "📌"}</span>
               <div className="sched-task-body">
                 <div className="sched-task-title">{t.title}</div>
@@ -316,19 +205,17 @@ function Scheduler() {
           ))}
         </div>
 
-        {/* Mini calendar */}
         <div className="calendar-col">
           <div className="chart-box-title" style={{marginBottom:16}}>May 2026</div>
           <div className="mini-cal">
             {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => (
               <div key={d} className="cal-head">{d}</div>
             ))}
-            {/* offset for May 2026 starting on Friday = 5 blanks */}
             {Array(5).fill(null).map((_,i) => <div key={`b${i}`} />)}
             {Array(31).fill(null).map((_,i) => {
               const day = i + 1;
               const hasTask = [3,7,9,14,17,21,28].includes(day);
-              const isToday = day === 17;
+              const isToday = day === 19;
               return (
                 <div key={day} className={`cal-day ${isToday ? "today" : ""} ${hasTask ? "has-task" : ""}`}>
                   {day}
@@ -338,7 +225,6 @@ function Scheduler() {
             })}
           </div>
 
-          {/* Upcoming reminders */}
           <div className="chart-box-title" style={{margin:"24px 0 12px"}}>Reminders</div>
           {[
             {icon:"💊",text:"Fungicide — Field 4",when:"Tomorrow"},
@@ -357,11 +243,12 @@ function Scheduler() {
   );
 }
 
+// ─── AI Chatbot ───────────────────────────────────────────────────────────────
 function AIChatbot() {
   const [messages, setMessages] = useState([
     { role: "assistant", text: "Namaste! I'm your Farmify AI assistant. Ask me anything about crops, soil, disease, weather, or best practices for your farm. 🌾" }
   ]);
-  const [input, setInput] = useState("");
+  const [input, setInput]   = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -434,7 +321,6 @@ function AIChatbot() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Suggestions */}
         {messages.length === 1 && (
           <div className="chat-suggestions">
             {SUGGESTIONS.map(s => (
@@ -452,9 +338,7 @@ function AIChatbot() {
             onKeyDown={e => e.key === "Enter" && send(input)}
             disabled={loading}
           />
-          <button className="chat-send" onClick={() => send(input)} disabled={loading || !input.trim()}>
-            ↑
-          </button>
+          <button className="chat-send" onClick={() => send(input)} disabled={loading || !input.trim()}>↑</button>
         </div>
       </div>
     </div>
@@ -462,26 +346,36 @@ function AIChatbot() {
 }
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
-
 export default function Dashboard() {
-  const [active, setActive] = useState<Section>("overview");
+  const [active, setActive]       = useState<Section>("overview");
   const [collapsed, setCollapsed] = useState(false);
+  const [userName, setUserName]   = useState("AA");
+  const [userFullName, setUserFullName] = useState("Farmer");
   const router = useRouter();
 
-const handleLogout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  router.push("/login");
-};
+  // ── Fix hydration: only read localStorage on client after mount ──
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (user?.name) {
+      setUserName(user.name.slice(0, 2).toUpperCase());
+      setUserFullName(user.name);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/login");
+  };
 
   const views: Record<Section, ReactElement> = {
-  overview: <Overview />,
-  crops: <MyCrops />,
-  disease: <DiseaseDetection />,
-  weather: <Weather />,
-  scheduler: <Scheduler />,
-  chatbot: <AIChatbot />,
-};
+    overview:  <Overview />,
+    crops:     <MyCrops />,
+    disease:   <DiseaseDetection />,
+    weather:   <Weather />,
+    scheduler: <Scheduler />,
+    chatbot:   <AIChatbot />,
+  };
 
   return (
     <div className="dash-root">
@@ -511,99 +405,51 @@ const handleLogout = () => {
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; }
+        body { background: var(--bg); color: var(--cream); font-family: 'Syne', sans-serif; font-weight: 400; }
 
-        body {
-          background: var(--bg);
-          color: var(--cream);
-          font-family: 'Syne', sans-serif;
-          font-weight: 400;
-        }
-
-        .dash-root {
-          display: flex;
-          min-height: 100vh;
-          background: var(--bg);
-        }
+        .dash-root { display: flex; min-height: 100vh; background: var(--bg); }
 
         /* ── SIDEBAR */
         .sidebar {
-          width: var(--sidebar-w);
-          min-height: 100vh;
-          background: var(--bg2);
-          border-right: 1px solid var(--border);
+          width: var(--sidebar-w); min-height: 100vh;
+          background: var(--bg2); border-right: 1px solid var(--border);
           display: flex; flex-direction: column;
-          transition: width 0.25s ease;
-          flex-shrink: 0;
-          position: sticky; top: 0; height: 100vh;
-          overflow: hidden;
+          transition: width 0.25s ease; flex-shrink: 0;
+          position: sticky; top: 0; height: 100vh; overflow: hidden;
         }
         .sidebar.collapsed { width: var(--sidebar-collapsed); }
-
         .sidebar-top {
-          padding: 20px 16px;
-          border-bottom: 1px solid var(--border);
-          display: flex; align-items: center; justify-content: space-between;
-          min-height: 64px;
+          padding: 20px 16px; border-bottom: 1px solid var(--border);
+          display: flex; align-items: center; justify-content: space-between; min-height: 64px;
         }
-        .sidebar-logo {
-          font-weight: 800; font-size: 16px; color: var(--cream);
-          white-space: nowrap; overflow: hidden;
-          display: flex; align-items: center; gap: 8px;
-        }
+        .sidebar-logo { font-weight: 800; font-size: 16px; color: var(--cream); white-space: nowrap; overflow: hidden; display: flex; align-items: center; gap: 8px; }
         .sidebar-logo em { color: var(--green); font-style: normal; }
-        .collapse-btn {
-          background: none; border: none; color: var(--muted);
-          cursor: pointer; font-size: 14px; padding: 4px;
-          flex-shrink: 0; transition: color 0.2s;
-        }
+        .collapse-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px; flex-shrink: 0; transition: color 0.2s; }
         .collapse-btn:hover { color: var(--cream); }
-
         .sidebar-nav { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
-
         .nav-item {
           display: flex; align-items: center; gap: 12px;
-          padding: 10px 12px; border-radius: 10px;
-          cursor: pointer; transition: all 0.18s;
-          white-space: nowrap; color: var(--muted);
-          font-size: 13px; font-weight: 500;
-          border: 1px solid transparent;
-          text-decoration: none;
+          padding: 10px 12px; border-radius: 10px; cursor: pointer;
+          transition: all 0.18s; white-space: nowrap; color: var(--muted);
+          font-size: 13px; font-weight: 500; border: 1px solid transparent; text-decoration: none;
         }
         .nav-item:hover { background: var(--glo); color: var(--cream); }
-        .nav-item.active {
-          background: var(--glo); color: var(--green);
-          border-color: var(--border2);
-        }
+        .nav-item.active { background: var(--glo); color: var(--green); border-color: var(--border2); }
         .nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
         .nav-label { overflow: hidden; }
-
-        .sidebar-bottom {
-          padding: 12px 8px;
-          border-top: 1px solid var(--border);
-        }
-        .user-row {
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 12px; border-radius: 10px;
-          overflow: hidden;
-        }
+        .sidebar-bottom { padding: 12px 8px; border-top: 1px solid var(--border); }
+        .user-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; overflow: hidden; }
         .user-avatar {
           width: 32px; height: 32px; border-radius: 50%;
           background: var(--gmd); border: 1px solid var(--border2);
           display: flex; align-items: center; justify-content: center;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px; color: var(--green); flex-shrink: 0;
+          font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--green); flex-shrink: 0;
         }
         .user-name { font-size: 13px; font-weight: 600; color: var(--cream); white-space: nowrap; overflow: hidden; }
         .user-role { font-size: 11px; color: var(--muted); }
 
         /* ── MAIN */
-        .main {
-          flex: 1; overflow-y: auto;
-          background: var(--bg);
-          min-width: 0;
-        }
-
-        /* top bar */
+        .main { flex: 1; overflow-y: auto; background: var(--bg); min-width: 0; }
         .topbar {
           height: 64px; border-bottom: 1px solid var(--border);
           display: flex; align-items: center; justify-content: space-between;
@@ -616,54 +462,27 @@ const handleLogout = () => {
           width: 36px; height: 36px; border-radius: 8px;
           border: 1px solid var(--border); background: var(--bg2);
           display: flex; align-items: center; justify-content: center;
-          cursor: pointer; font-size: 15px; color: var(--muted);
-          transition: all 0.2s;
+          cursor: pointer; font-size: 15px; color: var(--muted); transition: all 0.2s;
         }
         .topbar-icon-btn:hover { border-color: var(--border2); color: var(--cream); }
-        .notif-dot {
-          position: relative;
-        }
-        .notif-dot::after {
-          content: ''; position: absolute; top: 6px; right: 6px;
-          width: 6px; height: 6px; border-radius: 50%;
-          background: var(--amber);
-        }
+        .notif-dot { position: relative; }
+        .notif-dot::after { content: ''; position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
 
         /* ── VIEWS */
         .view-root { padding: 32px; display: flex; flex-direction: column; gap: 24px; }
         .chatbot-root { height: calc(100vh - 64px); overflow: hidden; padding-bottom: 0; }
-
-        .view-header {
-          display: flex; align-items: flex-start; justify-content: space-between;
-          flex-wrap: wrap; gap: 12px;
-        }
-        .view-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 32px; font-weight: 700; color: var(--cream); line-height: 1.1;
-        }
+        .view-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        .view-title { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 700; color: var(--cream); line-height: 1.1; }
         .view-sub { font-size: 14px; color: var(--muted); margin-top: 4px; }
         .view-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); padding-top: 6px; }
-        .location-tag { font-size: 13px; color: var(--muted); padding-top: 6px; }
-        .ai-badge {
-          font-family: 'JetBrains Mono', monospace; font-size: 11px;
-          color: var(--green); background: var(--glo);
-          border: 1px solid var(--border2); border-radius: 100px;
-          padding: 5px 12px; letter-spacing: 0.06em;
-        }
+        .ai-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--green); background: var(--glo); border: 1px solid var(--border2); border-radius: 100px; padding: 5px 12px; letter-spacing: 0.06em; }
 
         /* ── STAT CARDS */
         .stats-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; }
-        .stat-card {
-          background: var(--bg2); border: 1px solid var(--border);
-          border-radius: 14px; padding: 18px 16px;
-          transition: border-color 0.2s;
-        }
+        .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 18px 16px; transition: border-color 0.2s; }
         .stat-card:hover { border-color: var(--border2); }
         .stat-icon { font-size: 20px; margin-bottom: 8px; }
-        .stat-val {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 26px; font-weight: 700; color: var(--cream);
-        }
+        .stat-val { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: var(--cream); }
         .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
         .stat-delta { font-size: 11px; margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
         .stat-delta.green { color: var(--green); }
@@ -671,21 +490,15 @@ const handleLogout = () => {
 
         /* ── CHARTS */
         .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
-        .chart-box {
-          background: var(--bg2); border: 1px solid var(--border);
-          border-radius: 16px; padding: 20px;
-        }
-        .chart-box.wide {}
+        .chart-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
         .chart-box-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
         .chart-box-title { font-size: 13px; font-weight: 600; color: var(--cream); }
         .chart-box-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); }
-
         .yield-chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; }
         .yield-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
         .yield-bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; }
-        .yield-bar { width: 100%; background: linear-gradient(to top, var(--gdim), var(--green)); border-radius: 3px 3px 0 0; transition: opacity 0.2s; }
+        .yield-bar { width: 100%; background: linear-gradient(to top, var(--gdim), var(--green)); border-radius: 3px 3px 0 0; }
         .yield-month { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); }
-
         .donut-wrap { position: relative; width: 120px; height: 120px; margin: 0 auto 16px; }
         .donut-svg { width: 120px; height: 120px; transform: rotate(-90deg); }
         .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -699,23 +512,14 @@ const handleLogout = () => {
 
         /* ── BOTTOM ROW */
         .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .alert-box, .recent-tasks-box {
-          background: var(--bg2); border: 1px solid var(--border);
-          border-radius: 16px; padding: 20px;
-        }
-        .alert-row {
-          display: flex; align-items: flex-start; gap: 12px;
-          padding: 12px; border-radius: 10px; margin-bottom: 8px;
-        }
+        .alert-box, .recent-tasks-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+        .alert-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 10px; margin-bottom: 8px; }
         .alert-row.amber { background: var(--alo); border: 1px solid rgba(232,162,69,0.2); }
         .alert-row.red { background: var(--rlo); border: 1px solid rgba(224,92,92,0.2); }
         .alert-row-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
         .alert-row-title { font-size: 13px; font-weight: 600; color: var(--cream); }
         .alert-row-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-        .task-row {
-          display: flex; align-items: flex-start; gap: 10px;
-          padding: 10px 0; border-bottom: 1px solid var(--border);
-        }
+        .task-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
         .task-row:last-child { border-bottom: none; }
         .task-row.done { opacity: 0.45; }
         .task-check { font-size: 14px; color: var(--green); flex-shrink: 0; margin-top: 1px; }
@@ -724,38 +528,24 @@ const handleLogout = () => {
 
         /* ── CROPS TABLE */
         .crops-table { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
-        .crops-thead {
-          display: grid; grid-template-columns: 1.2fr 1fr 0.8fr 1fr 1.2fr 0.8fr 1fr;
-          background: var(--bg3); padding: 12px 20px;
-          border-bottom: 1px solid var(--border);
-        }
+        .crops-thead { display: grid; grid-template-columns: 1.2fr 1fr 0.8fr 1fr 1.2fr 0.8fr 1fr; background: var(--bg3); padding: 12px 20px; border-bottom: 1px solid var(--border); }
         .crops-th { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
-        .crops-row {
-          display: grid; grid-template-columns: 1.2fr 1fr 0.8fr 1fr 1.2fr 0.8fr 1fr;
-          padding: 14px 20px; border-bottom: 1px solid var(--border);
-          cursor: pointer; transition: background 0.15s; align-items: center;
-        }
+        .crops-row { display: grid; grid-template-columns: 1.2fr 1fr 0.8fr 1fr 1.2fr 0.8fr 1fr; padding: 14px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; align-items: center; }
         .crops-row:last-child { border-bottom: none; }
         .crops-row:hover { background: var(--bg3); }
         .crops-row.selected { background: var(--glo); border-color: var(--border2); }
         .crops-td { font-size: 13px; color: var(--cream); display: flex; align-items: center; gap: 6px; }
         .crop-name { font-weight: 600; }
         .muted { color: var(--muted) !important; }
-        .stage-pill {
-          font-size: 11px; background: var(--glo); color: var(--green);
-          border: 1px solid var(--border2); padding: 2px 8px; border-radius: 100px;
-        }
+        .stage-pill { font-size: 11px; background: var(--glo); color: var(--green); border: 1px solid var(--border2); padding: 2px 8px; border-radius: 100px; }
         .health-bar-wrap { width: 60px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
         .health-bar { height: 100%; border-radius: 2px; transition: width 0.3s; }
         .health-num { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
         .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
         .status-dot.good { background: var(--green); }
         .status-dot.warn { background: var(--amber); }
-        .status-dot.bad { background: var(--red); }
-        .crop-detail {
-          background: var(--bg2); border: 1px solid var(--border2);
-          border-radius: 16px; padding: 24px;
-        }
+        .status-dot.bad  { background: var(--red); }
+        .crop-detail { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 24px; }
         .crop-detail-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin: 16px 0; }
         .crop-detail-cell { background: var(--bg3); border-radius: 10px; padding: 12px 16px; }
         .crop-detail-lbl { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
@@ -763,13 +553,7 @@ const handleLogout = () => {
         .crop-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
         /* ── ACTION BUTTONS */
-        .action-btn {
-          font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
-          padding: 9px 18px; border-radius: 9px;
-          border: 1px solid var(--border2); color: var(--cream);
-          background: var(--bg3); cursor: pointer; transition: all 0.2s;
-          white-space: nowrap;
-        }
+        .action-btn { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; padding: 9px 18px; border-radius: 9px; border: 1px solid var(--border2); color: var(--cream); background: var(--bg3); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
         .action-btn:hover { border-color: var(--green); background: var(--glo); }
         .action-btn.green { background: var(--green); color: #060e07; border-color: var(--green); }
         .action-btn.green:hover { background: #6dd98a; }
@@ -777,125 +561,15 @@ const handleLogout = () => {
         .action-btn.amber:hover { background: var(--alo); }
         .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* ── DISEASE DETECTION */
-        .disease-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; flex: 1; }
-        .disease-upload-col { display: flex; flex-direction: column; gap: 16px; }
-        .disease-result-col {
-          background: var(--bg2); border: 1px solid var(--border);
-          border-radius: 16px; overflow-y: auto; min-height: 400px;
-        }
-        .upload-zone {
-          border: 2px dashed var(--border2); border-radius: 16px;
-          min-height: 260px; display: flex; align-items: center; justify-content: center;
-          cursor: pointer; transition: all 0.2s; overflow: hidden;
-          background: var(--bg2);
-        }
-        .upload-zone:hover { border-color: var(--green); background: var(--glo); }
-        .upload-zone.has-file { border-style: solid; padding: 0; }
-        .upload-preview { width: 100%; height: 260px; object-fit: cover; }
-        .upload-placeholder { text-align: center; padding: 32px; }
-        .upload-icon { font-size: 48px; margin-bottom: 12px; }
-        .upload-text { font-size: 15px; font-weight: 600; color: var(--cream); margin-bottom: 6px; }
-        .upload-sub { font-size: 13px; color: var(--muted); }
-        .upload-actions { display: flex; gap: 10px; }
-        .disease-tips {
-          background: var(--bg2); border: 1px solid var(--border);
-          border-radius: 14px; padding: 16px 18px;
-        }
-        .tips-title { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; }
-        .tip-row { font-size: 13px; color: var(--muted); display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
-        .tip-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); flex-shrink: 0; margin-top: 6px; }
-
-        .result-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 48px; text-align: center; }
-        .result-empty-title { font-size: 16px; font-weight: 600; color: var(--cream); margin-bottom: 6px; }
-        .result-empty-sub { font-size: 13px; color: var(--muted); }
-        .spinner {
-          width: 40px; height: 40px; border-radius: 50%;
-          border: 3px solid var(--border); border-top-color: var(--green);
-          animation: spin 0.9s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .result-card { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-        .result-header { display: flex; align-items: center; justify-content: space-between; }
-        .result-badge { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 100px; }
-        .result-badge.red { background: var(--rlo); color: var(--red); border: 1px solid rgba(224,92,92,0.3); }
-        .result-conf { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--green); }
-        .result-disease-name { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 700; color: var(--cream); }
-        .result-disease-sci { font-size: 13px; color: var(--muted); font-style: italic; margin-top: -8px; }
-        .result-section-title { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; border-top: 1px solid var(--border); padding-top: 14px; }
-        .result-symptoms { display: flex; flex-direction: column; gap: 6px; }
-        .symptom-row { font-size: 13px; color: var(--muted); display: flex; gap: 8px; }
-        .treatment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .treatment-card { background: var(--bg3); border-radius: 12px; padding: 14px; }
-        .treatment-icon { font-size: 20px; margin-bottom: 6px; }
-        .treatment-title { font-size: 12px; font-weight: 700; color: var(--green); margin-bottom: 4px; }
-        .treatment-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
-        .result-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 4px; }
-
-        /* ── WEATHER */
-        .weather-hero {
-          display: grid; grid-template-columns: 240px 1fr;
-          gap: 20px; background: var(--bg2); border: 1px solid var(--border);
-          border-radius: 20px; padding: 28px; align-items: center;
-        }
-        .weather-main { text-align: center; border-right: 1px solid var(--border); padding-right: 28px; }
-        .weather-icon-big { font-size: 56px; margin-bottom: 8px; }
-        .weather-temp { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 700; color: var(--cream); line-height: 1; }
-        .weather-condition { font-size: 15px; color: var(--muted); margin-top: 4px; }
-        .weather-feels { font-size: 12px; color: var(--muted); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
-        .weather-metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-        .weather-metric-card { background: var(--bg3); border-radius: 12px; padding: 14px; }
-        .wm-icon { font-size: 18px; margin-bottom: 4px; }
-        .wm-lbl { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
-        .wm-val { font-size: 13px; font-weight: 600; color: var(--cream); }
-
-        .forecast-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
-        .forecast-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 8px; }
-        .forecast-card {
-          background: var(--bg3); border-radius: 12px; padding: 14px 8px;
-          text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center;
-        }
-        .fc-day { font-size: 11px; font-weight: 600; color: var(--muted); }
-        .fc-icon { font-size: 24px; }
-        .fc-high { font-size: 15px; font-weight: 700; color: var(--cream); }
-        .fc-low { font-size: 12px; color: var(--muted); }
-        .fc-rain-wrap { width: 100%; display: flex; flex-direction: column; gap: 3px; align-items: center; }
-        .fc-rain-bar { width: 100%; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
-        .fc-rain-fill { height: 100%; background: #5ba8e8; border-radius: 2px; }
-        .fc-rain-pct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #5ba8e8; }
-
-        .advisory-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
-        .advisory-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .advisory-card {
-          display: flex; align-items: flex-start; gap: 12px;
-          padding: 14px; border-radius: 12px;
-        }
-        .advisory-card.amber { background: var(--alo); border: 1px solid rgba(232,162,69,0.2); }
-        .advisory-card.red { background: var(--rlo); border: 1px solid rgba(224,92,92,0.2); }
-        .advisory-card.green { background: var(--glo); border: 1px solid rgba(76,175,110,0.2); }
-        .advisory-icon { font-size: 22px; flex-shrink: 0; }
-        .advisory-title { font-size: 13px; font-weight: 600; color: var(--cream); margin-bottom: 4px; }
-        .advisory-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
-
         /* ── SCHEDULER */
         .scheduler-layout { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
         .task-list-col { display: flex; flex-direction: column; gap: 8px; }
         .add-task-row { display: flex; gap: 8px; }
-        .task-input {
-          flex: 1; background: var(--bg2); border: 1px solid var(--border2);
-          border-radius: 9px; padding: 10px 14px; font-size: 13px;
-          color: var(--cream); font-family: 'Syne', sans-serif; outline: none;
-          transition: border-color 0.2s;
-        }
+        .task-input { flex: 1; background: var(--bg2); border: 1px solid var(--border2); border-radius: 9px; padding: 10px 14px; font-size: 13px; color: var(--cream); font-family: 'Syne', sans-serif; outline: none; transition: border-color 0.2s; }
         .task-input:focus { border-color: var(--green); }
         .task-input::placeholder { color: var(--muted); }
         .tasks-section-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 8px; padding: 0 4px; }
-        .sched-task-row {
-          display: flex; align-items: center; gap: 12px;
-          background: var(--bg2); border: 1px solid var(--border);
-          border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.18s;
-        }
+        .sched-task-row { display: flex; align-items: center; gap: 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.18s; }
         .sched-task-row:hover { border-color: var(--border2); }
         .sched-task-row.done { opacity: 0.45; }
         .sched-check { font-size: 14px; color: var(--green); flex-shrink: 0; }
@@ -905,30 +579,16 @@ const handleLogout = () => {
         .sched-task-title { font-size: 13px; color: var(--cream); }
         .sched-task-title.done { text-decoration: line-through; color: var(--muted); }
         .sched-task-time { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
-
-        .calendar-col {
-          background: var(--bg2); border: 1px solid var(--border);
-          border-radius: 16px; padding: 20px; position: sticky; top: 80px;
-        }
+        .calendar-col { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 20px; position: sticky; top: 80px; }
         .mini-cal { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 4px; }
         .cal-head { font-size: 10px; color: var(--muted); text-align: center; font-weight: 600; padding: 4px 0; }
-        .cal-day {
-          font-size: 12px; color: var(--muted); text-align: center;
-          padding: 6px 4px; border-radius: 6px; cursor: pointer;
-          position: relative; transition: all 0.15s;
-        }
+        .cal-day { font-size: 12px; color: var(--muted); text-align: center; padding: 6px 4px; border-radius: 6px; cursor: pointer; position: relative; transition: all 0.15s; }
         .cal-day:hover { background: var(--glo); color: var(--cream); }
-        .cal-day.today { background: var(--green); color: #060e07; font-weight: 700; border-radius: 6px; }
+        .cal-day.today { background: var(--green); color: #060e07; font-weight: 700; }
         .cal-day.has-task { color: var(--cream); }
-        .cal-dot {
-          position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
-          width: 4px; height: 4px; border-radius: 50%; background: var(--amber);
-        }
+        .cal-dot { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--amber); }
         .cal-day.today .cal-dot { background: #060e07; }
-        .reminder-row {
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 0; border-bottom: 1px solid var(--border);
-        }
+        .reminder-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
         .reminder-row:last-child { border-bottom: none; }
         .reminder-icon { font-size: 16px; }
         .reminder-text { flex: 1; font-size: 12px; color: var(--cream); }
@@ -936,91 +596,48 @@ const handleLogout = () => {
 
         /* ── CHATBOT */
         .chat-layout { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
-        .chat-messages {
-          flex: 1; overflow-y: auto; display: flex; flex-direction: column;
-          gap: 16px; padding: 16px 0 8px;
-        }
+        .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 16px 0 8px; }
         .chat-messages::-webkit-scrollbar { width: 4px; }
         .chat-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
         .chat-bubble-wrap { display: flex; align-items: flex-end; gap: 10px; }
         .chat-bubble-wrap.user { flex-direction: row-reverse; }
-        .chat-avatar {
-          width: 32px; height: 32px; border-radius: 50%; background: var(--glo);
-          border: 1px solid var(--border2); display: flex; align-items: center;
-          justify-content: center; font-size: 14px; flex-shrink: 0;
-        }
-        .chat-bubble {
-          max-width: 70%; padding: 12px 16px; border-radius: 16px;
-          font-size: 14px; line-height: 1.6; white-space: pre-wrap;
-        }
-        .chat-bubble.assistant {
-          background: var(--bg2); border: 1px solid var(--border);
-          color: var(--cream); border-bottom-left-radius: 4px;
-        }
-        .chat-bubble.user {
-          background: var(--green); color: #060e07; font-weight: 500;
-          border-bottom-right-radius: 4px;
-        }
+        .chat-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--glo); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+        .chat-bubble { max-width: 70%; padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+        .chat-bubble.assistant { background: var(--bg2); border: 1px solid var(--border); color: var(--cream); border-bottom-left-radius: 4px; }
+        .chat-bubble.user { background: var(--green); color: #060e07; font-weight: 500; border-bottom-right-radius: 4px; }
         .chat-bubble.typing { display: flex; align-items: center; gap: 4px; padding: 14px 18px; }
         .dot-1,.dot-2,.dot-3 { font-size: 10px; color: var(--muted); animation: bounce 1.2s infinite; }
         .dot-2 { animation-delay: 0.2s; }
         .dot-3 { animation-delay: 0.4s; }
         @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
-
         .chat-suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 0; }
-        .suggestion-chip {
-          background: var(--bg2); border: 1px solid var(--border2);
-          border-radius: 100px; padding: 7px 14px; font-size: 12px;
-          color: var(--muted); cursor: pointer; transition: all 0.18s;
-          font-family: 'Syne', sans-serif;
-        }
+        .suggestion-chip { background: var(--bg2); border: 1px solid var(--border2); border-radius: 100px; padding: 7px 14px; font-size: 12px; color: var(--muted); cursor: pointer; transition: all 0.18s; font-family: 'Syne', sans-serif; }
         .suggestion-chip:hover { border-color: var(--green); color: var(--cream); background: var(--glo); }
-
-        .chat-input-row {
-          display: flex; gap: 10px; padding: 16px 0 24px;
-          border-top: 1px solid var(--border); margin-top: 4px;
-        }
-        .chat-input {
-          flex: 1; background: var(--bg2); border: 1px solid var(--border2);
-          border-radius: 12px; padding: 12px 18px; font-size: 14px;
-          color: var(--cream); font-family: 'Syne', sans-serif; outline: none;
-          transition: border-color 0.2s;
-        }
+        .chat-input-row { display: flex; gap: 10px; padding: 16px 0 24px; border-top: 1px solid var(--border); margin-top: 4px; }
+        .chat-input { flex: 1; background: var(--bg2); border: 1px solid var(--border2); border-radius: 12px; padding: 12px 18px; font-size: 14px; color: var(--cream); font-family: 'Syne', sans-serif; outline: none; transition: border-color 0.2s; }
         .chat-input:focus { border-color: var(--green); }
         .chat-input::placeholder { color: var(--muted); }
         .chat-input:disabled { opacity: 0.5; }
-        .chat-send {
-          width: 46px; height: 46px; border-radius: 12px;
-          background: var(--green); color: #060e07; font-size: 18px; font-weight: 700;
-          border: none; cursor: pointer; transition: all 0.2s; flex-shrink: 0;
-        }
+        .chat-send { width: 46px; height: 46px; border-radius: 12px; background: var(--green); color: #060e07; font-size: 18px; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .chat-send:hover:not(:disabled) { background: #6dd98a; }
         .chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
         /* ── RESPONSIVE */
-        @media (max-width: 1280px) {
-          .stats-grid { grid-template-columns: repeat(3,1fr); }
-        }
+        @media (max-width: 1280px) { .stats-grid { grid-template-columns: repeat(3,1fr); } }
         @media (max-width: 900px) {
           .charts-row { grid-template-columns: 1fr; }
           .bottom-row { grid-template-columns: 1fr; }
-          .disease-layout { grid-template-columns: 1fr; }
           .scheduler-layout { grid-template-columns: 1fr; }
-          .weather-hero { grid-template-columns: 1fr; }
-          .weather-main { border-right: none; border-bottom: 1px solid var(--border); padding-right: 0; padding-bottom: 20px; }
-          .forecast-grid { grid-template-columns: repeat(4,1fr); }
-          .advisory-grid { grid-template-columns: 1fr; }
           .crops-thead,.crops-row { grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; }
           .crops-td:nth-child(2),.crops-th:nth-child(2) { display: none; }
         }
         @media (max-width: 640px) {
           .stats-grid { grid-template-columns: repeat(2,1fr); }
           .view-root { padding: 16px; }
-          .forecast-grid { grid-template-columns: repeat(3,1fr); }
         }
       `}</style>
 
-      {/* SIDEBAR */}
+      {/* ── SIDEBAR ── */}
       <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
         <div className="sidebar-top">
           {!collapsed && <div className="sidebar-logo">🌾 Farmify<em>AI</em></div>}
@@ -1043,39 +660,30 @@ const handleLogout = () => {
         </nav>
 
         <div className="sidebar-bottom">
-  <div className="user-row">
-    <div className="user-avatar">
-      {typeof window !== "undefined"
-        ? JSON.parse(localStorage.getItem("user") || "{}")?.name?.slice(0,2).toUpperCase() || "AA"
-        : "AA"}
-    </div>
-    {!collapsed && (
-      <div style={{ flex: 1, overflow: "hidden" }}>
-        <div className="user-name">
-          {typeof window !== "undefined"
-            ? JSON.parse(localStorage.getItem("user") || "{}")?.name || "Farmer"
-            : "Farmer"}
+          <div className="user-row">
+            {/* userName starts as "AA" on server AND client — no mismatch */}
+            <div className="user-avatar">{userName}</div>
+            {!collapsed && (
+              <div style={{ flex: 1, overflow: "hidden" }}>
+                <div className="user-name">{userFullName}</div>
+                <div className="user-role">Farmer</div>
+              </div>
+            )}
+          </div>
+          <div
+            className="nav-item"
+            onClick={handleLogout}
+            title="Logout"
+            style={{ marginTop: 4, color: "var(--red)" }}
+          >
+            <span className="nav-icon">🚪</span>
+            {!collapsed && <span className="nav-label">Logout</span>}
+          </div>
         </div>
-        <div className="user-role">Farmer</div>
-      </div>
-    )}
-  </div>
-
-  <div
-    className="nav-item"
-    onClick={handleLogout}
-    title="Logout"
-    style={{ marginTop: 4, color: "var(--red)" }}
-  >
-    <span className="nav-icon">🚪</span>
-    {!collapsed && <span className="nav-label">Logout</span>}
-  </div>
-</div>
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* ── MAIN ── */}
       <div className="main">
-        {/* Topbar */}
         <div className="topbar">
           <div className="topbar-left">
             <strong>{NAV_ITEMS.find(n => n.id === active)?.label}</strong>
@@ -1084,11 +692,20 @@ const handleLogout = () => {
           <div className="topbar-right">
             <div className="topbar-icon-btn notif-dot" title="Notifications">🔔</div>
             <div className="topbar-icon-btn" title="Settings">⚙️</div>
-            <div className="user-avatar" style={{width:36,height:36,fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:"var(--green)",background:"var(--glo)",border:"1px solid var(--border2)",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:"50%"}}>AA</div>
+            {/* topbar avatar also uses state — no hydration issue */}
+            <div className="user-avatar" style={{
+              width:36, height:36,
+              fontFamily:"'JetBrains Mono',monospace", fontSize:11,
+              color:"var(--green)", background:"var(--glo)",
+              border:"1px solid var(--border2)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              borderRadius:"50%",
+            }}>
+              {userName}
+            </div>
           </div>
         </div>
 
-        {/* Active view */}
         {views[active]}
       </div>
     </div>

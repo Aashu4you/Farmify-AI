@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import cropRoutes from "./routes/cropRoutes.js";
 import diseaseRoutes from "./routes/diseaseRoutes.js";
+import weatherRoutes from "./routes/weatherRoutes.js";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/crops", cropRoutes);
 app.use("/api/disease", diseaseRoutes);
+app.use("/api/weather", weatherRoutes);
 
 app.get("/", (req, res) => {
   res.send("Farmify API Running");
