@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import DiseaseDetection from "./DiseaseDetection";
 import Weather from "./Weather";
 import Scheduler from "./Scheduler";
+import ProfileModal from "./ProfileModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Section = "overview" | "crops" | "disease" | "weather" | "scheduler" | "chatbot";
@@ -249,6 +250,7 @@ export default function Dashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [userName, setUserName]   = useState("AA");
   const [userFullName, setUserFullName] = useState("Farmer");
+  const [profileOpen, setProfileOpen] = useState(false);
   const router = useRouter();
 
   // ── Fix hydration: only read localStorage on client after mount ──
@@ -259,6 +261,10 @@ export default function Dashboard() {
       setUserFullName(user.name);
     }
   }, []);
+  const handleProfileUpdate = (newName: string) => {
+  setUserName(newName.slice(0, 2).toUpperCase());
+  setUserFullName(newName);
+};
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -591,16 +597,29 @@ export default function Dashboard() {
             <div className="topbar-icon-btn notif-dot" title="Notifications">🔔</div>
             <div className="topbar-icon-btn" title="Settings">⚙️</div>
             {/* topbar avatar also uses state — no hydration issue */}
-            <div className="user-avatar" style={{
-              width:36, height:36,
-              fontFamily:"'JetBrains Mono',monospace", fontSize:11,
-              color:"var(--green)", background:"var(--glo)",
-              border:"1px solid var(--border2)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              borderRadius:"50%",
-            }}>
-              {userName}
-            </div>
+            <div
+  className="user-avatar"
+  style={{
+    width:36, height:36,
+    fontFamily:"'JetBrains Mono',monospace", fontSize:11,
+    color:"var(--green)", background:"var(--glo)",
+    border:"1px solid var(--border2)",
+    display:"flex", alignItems:"center", justifyContent:"center",
+    borderRadius:"50%", cursor:"pointer",
+  }}
+  onClick={() => setProfileOpen(true)}
+  title="My Profile"
+>
+  {userName}
+</div>
+
+{/* Add this right after the topbar closing div */}
+{profileOpen && (
+  <ProfileModal
+    onClose={() => setProfileOpen(false)}
+    onProfileUpdate={handleProfileUpdate}
+  />
+)}
           </div>
         </div>
 
