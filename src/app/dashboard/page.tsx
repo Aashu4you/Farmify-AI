@@ -5,6 +5,7 @@ import MyCrops from "./MyCrops";
 import { useRouter } from "next/navigation";
 import DiseaseDetection from "./DiseaseDetection";
 import Weather from "./Weather";
+import Scheduler from "./Scheduler";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Section = "overview" | "crops" | "disease" | "weather" | "scheduler" | "chatbot";
@@ -132,109 +133,6 @@ function Overview() {
                 <div className="task-title">{t.title}</div>
                 <div className="task-time">{t.time}</div>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Scheduler ────────────────────────────────────────────────────────────────
-function Scheduler() {
-  const [tasks, setTasks] = useState(TASKS);
-  const [newTask, setNewTask] = useState("");
-
-  const toggle = (id: number) =>
-    setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
-
-  const add = () => {
-    if (!newTask.trim()) return;
-    setTasks([...tasks, { id: Date.now(), title: newTask, time: "Scheduled", type: "soil", done: false }]);
-    setNewTask("");
-  };
-
-  const typeIcon: Record<string, string> = {
-    irrigation:"💧", fertilizer:"🌿", spray:"🧪", harvest:"🌾", soil:"🪱"
-  };
-
-  return (
-    <div className="view-root">
-      <div className="view-header">
-        <div>
-          <h1 className="view-title">Scheduler</h1>
-          <p className="view-sub">Plan farm tasks, reminders, and irrigation schedules.</p>
-        </div>
-      </div>
-
-      <div className="scheduler-layout">
-        <div className="task-list-col">
-          <div className="add-task-row">
-            <input
-              className="task-input"
-              placeholder="Add a task…"
-              value={newTask}
-              onChange={e => setNewTask(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && add()}
-            />
-            <button className="action-btn green" onClick={add}>Add</button>
-          </div>
-
-          <div className="tasks-section-label">Upcoming</div>
-          {tasks.filter(t => !t.done).map(t => (
-            <div key={t.id} className="sched-task-row" onClick={() => toggle(t.id)}>
-              <span className="sched-check">○</span>
-              <span className="task-type-icon">{typeIcon[t.type] || "📌"}</span>
-              <div className="sched-task-body">
-                <div className="sched-task-title">{t.title}</div>
-                <div className="sched-task-time">{t.time}</div>
-              </div>
-            </div>
-          ))}
-
-          <div className="tasks-section-label" style={{marginTop:24}}>Completed</div>
-          {tasks.filter(t => t.done).map(t => (
-            <div key={t.id} className="sched-task-row done" onClick={() => toggle(t.id)}>
-              <span className="sched-check done">✓</span>
-              <span className="task-type-icon" style={{opacity:0.4}}>{typeIcon[t.type] || "📌"}</span>
-              <div className="sched-task-body">
-                <div className="sched-task-title done">{t.title}</div>
-                <div className="sched-task-time">{t.time}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="calendar-col">
-          <div className="chart-box-title" style={{marginBottom:16}}>May 2026</div>
-          <div className="mini-cal">
-            {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => (
-              <div key={d} className="cal-head">{d}</div>
-            ))}
-            {Array(5).fill(null).map((_,i) => <div key={`b${i}`} />)}
-            {Array(31).fill(null).map((_,i) => {
-              const day = i + 1;
-              const hasTask = [3,7,9,14,17,21,28].includes(day);
-              const isToday = day === 19;
-              return (
-                <div key={day} className={`cal-day ${isToday ? "today" : ""} ${hasTask ? "has-task" : ""}`}>
-                  {day}
-                  {hasTask && <span className="cal-dot" />}
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="chart-box-title" style={{margin:"24px 0 12px"}}>Reminders</div>
-          {[
-            {icon:"💊",text:"Fungicide — Field 4",when:"Tomorrow"},
-            {icon:"🌿",text:"NPK application — Field 1",when:"Wed"},
-            {icon:"🌾",text:"Harvest window opens — Field 5",when:"Sat"},
-          ].map(r => (
-            <div key={r.text} className="reminder-row">
-              <span className="reminder-icon">{r.icon}</span>
-              <div className="reminder-text">{r.text}</div>
-              <div className="reminder-when">{r.when}</div>
             </div>
           ))}
         </div>

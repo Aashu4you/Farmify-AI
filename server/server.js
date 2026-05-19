@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import cropRoutes from "./routes/cropRoutes.js";
 import diseaseRoutes from "./routes/diseaseRoutes.js";
 import weatherRoutes from "./routes/weatherRoutes.js";
+import taskRoutes from "./routes/taskRoutes.js";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/crops", cropRoutes);
 app.use("/api/disease", diseaseRoutes);
 app.use("/api/weather", weatherRoutes);
+app.use("/api/tasks", taskRoutes);
 
 app.get("/", (req, res) => {
   res.send("Farmify API Running");
