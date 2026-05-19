@@ -49,13 +49,56 @@ export const updateTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found or not authorised" });
     }
 
+    const wasDone = task.done;
+
     const fields = ["title", "type", "date", "time", "field", "crop", "notes", "priority", "done"];
     fields.forEach((f) => {
       if (req.body[f] !== undefined) task[f] = req.body[f];
     });
 
     const updated = await task.save();
-    res.status(200).json(updated);
+
+    // ── Update crop health when task is marked done ───────────────────────────
+    const justCompleted = !wasDone && updated.done;
+    let cropHealthUpdate = null;
+
+    if (justCompleted && updated.crop) {
+      // Health boost per task type
+      const HEALTH_BOOST = {
+        irrigation: 3,
+        fertilizer: 5,
+        spray:      8,
+        pruning:    3,
+        soil:       2,
+        harvest:    0,
+        other:      1,
+      };
+
+      const boost = HEALTH_BOOST[updated.type] ?? 1;
+
+      if (boost > 0) {
+        // Find matching crop by name (case-insensitive) for this user
+        const matchingCrop = await Crop.findOne({
+          user: req.user.id,
+          name: { $regex: new RegExp(`^${updated.crop.trim()}$`, "i") },
+        });
+
+        if (matchingCrop) {
+          const newHealth = Math.min(100, matchingCrop.health + boost);
+          matchingCrop.health = newHealth;
+          await matchingCrop.save();
+          cropHealthUpdate = {
+            cropId:   matchingCrop._id,
+            cropName: matchingCrop.name,
+            oldHealth: matchingCrop.health - boost < 0 ? 0 : matchingCrop.health - boost,
+            newHealth,
+            boost,
+          };
+        }
+      }
+    }
+
+    res.status(200).json({ task: updated, cropHealthUpdate });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

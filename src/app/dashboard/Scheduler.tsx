@@ -97,6 +97,12 @@ export default function Scheduler() {
   const [saving, setSaving]                 = useState(false);
   const [formError, setFormError]           = useState("");
   const [deleteId, setDeleteId]             = useState<string | null>(null);
+  const [toast, setToast]                   = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 4000);
+  };
   const [deleting, setDeleting]             = useState(false);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [recsLoading, setRecsLoading]       = useState(false);
@@ -188,7 +194,15 @@ export default function Scheduler() {
   const toggleDone = async (task: Task) => {
     try {
       const res = await api().put(`/tasks/${task._id}`, { done: !task.done });
-      setTasks(prev => prev.map(t => t._id === task._id ? res.data : t));
+      // Backend now returns { task, cropHealthUpdate }
+      const updatedTask = res.data.task || res.data;
+      setTasks(prev => prev.map(t => t._id === task._id ? updatedTask : t));
+
+      // Show toast if crop health was updated
+      const update = res.data.cropHealthUpdate;
+      if (update) {
+        showToast(`✅ ${task.title} done! ${update.cropName} health: ${update.oldHealth}% → ${update.newHealth}% (+${update.boost}%)`);
+      }
     } catch { /* silent */ }
   };
 
@@ -490,6 +504,18 @@ export default function Scheduler() {
         .empty-icon { font-size: 44px; opacity: 0.35; }
         .empty-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: var(--cream); }
         .empty-sub { font-size: 13px; color: var(--muted); max-width: 240px; line-height: 1.6; }
+
+        /* ── Toast ── */
+        .health-toast {
+          position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+          background: var(--bg2); border: 1px solid var(--green);
+          border-radius: 12px; padding: 14px 20px;
+          font-size: 13px; color: var(--cream); z-index: 999;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+          animation: toastIn 0.3s ease;
+          white-space: nowrap; max-width: 90vw;
+        }
+        @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
 
         @media (max-width: 900px) {
           .sched-layout { grid-template-columns: 1fr; }
@@ -861,6 +887,13 @@ export default function Scheduler() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* ── Health Toast ── */}
+      {toast && (
+        <div className="health-toast">
+          {toast}
         </div>
       )}
 
