@@ -8,21 +8,12 @@ import Weather from "./Weather";
 import Scheduler from "./Scheduler";
 import ProfileModal from "./ProfileModal";
 import SettingsModal from "./SettingsModal";
+import Overview from "./Overview";
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Section = "overview" | "crops" | "disease" | "weather" | "scheduler" | "chatbot";
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const TASKS = [
-  { id: 1, title: "Irrigate Field 3 — Soil moisture critical", time: "Today, 6:00 PM", type: "irrigation", done: false },
-  { id: 2, title: "Apply NPK fertilizer — Field 1 Wheat", time: "Tomorrow, 7:00 AM", type: "fertilizer", done: false },
-  { id: 3, title: "Pest spray — Field 4 Soybean", time: "Wed, 8:00 AM", type: "spray", done: false },
-  { id: 4, title: "Harvest check — Field 5 Cotton", time: "Thu, 9:00 AM", type: "harvest", done: true },
-  { id: 5, title: "Soil test — Field 2 Rice", time: "Fri, 10:00 AM", type: "soil", done: false },
-];
-
-const YIELD_DATA = [38, 52, 45, 68, 60, 78, 72, 88, 82, 94, 90, 96];
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
@@ -34,115 +25,7 @@ const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
   { id: "chatbot",   label: "AI Chatbot",        icon: "💬" },
 ];
 
-// ─── Overview ─────────────────────────────────────────────────────────────────
-function Overview() {
-  return (
-    <div className="view-root">
-      <div className="view-header">
-        <div>
-          <h1 className="view-title">Good morning 👋</h1>
-          <p className="view-sub">Here's what's happening on your farm today.</p>
-        </div>
-        <div className="view-date">{new Date().toLocaleDateString("en-IN", { weekday:"short", day:"numeric", month:"short", year:"numeric" })}</div>
-      </div>
 
-      <div className="stats-grid">
-        {[
-          { icon:"🌾", label:"Active Crops",    value:"8",     delta:"+2 this month",       color:"green" },
-          { icon:"🌱", label:"Avg Soil Health", value:"83%",   delta:"▲ Good",              color:"green" },
-          { icon:"⚠️", label:"Disease Alerts",  value:"1",     delta:"Field 4 Soybean",     color:"amber" },
-          { icon:"📈", label:"Est. Revenue",    value:"₹2.4L", delta:"+18% YoY",            color:"green" },
-          { icon:"💧", label:"Water Used",      value:"3,200L",delta:"−30% vs last week",   color:"green" },
-          { icon:"📅", label:"Pending Tasks",   value:"4",     delta:"2 urgent today",      color:"amber" },
-        ].map(s => (
-          <div key={s.label} className="stat-card">
-            <div className="stat-icon">{s.icon}</div>
-            <div className="stat-val">{s.value}</div>
-            <div className="stat-lbl">{s.label}</div>
-            <div className={`stat-delta ${s.color}`}>{s.delta}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="charts-row">
-        <div className="chart-box wide">
-          <div className="chart-box-header">
-            <span className="chart-box-title">Yield Forecast — 2026</span>
-            <span className="chart-box-tag">tonnes/acre</span>
-          </div>
-          <div className="yield-chart">
-            {YIELD_DATA.map((v, i) => (
-              <div key={i} className="yield-col">
-                <div className="yield-bar-wrap">
-                  <div className="yield-bar" style={{ height:`${v}%`, opacity: i === 11 ? 1 : 0.55 + i * 0.04 }} />
-                </div>
-                <div className="yield-month">{MONTHS[i]}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="chart-box">
-          <div className="chart-box-header">
-            <span className="chart-box-title">Crop Health</span>
-          </div>
-          <div className="donut-wrap">
-            <svg viewBox="0 0 120 120" className="donut-svg">
-              <circle cx="60" cy="60" r="44" fill="none" stroke="rgba(76,175,110,0.1)" strokeWidth="12" />
-              <circle cx="60" cy="60" r="44" fill="none" stroke="#4caf6e" strokeWidth="12" strokeDasharray="184 92" strokeDashoffset="69" strokeLinecap="round" />
-              <circle cx="60" cy="60" r="44" fill="none" stroke="#e8a245" strokeWidth="12" strokeDasharray="55 221" strokeDashoffset="-115" strokeLinecap="round" />
-              <circle cx="60" cy="60" r="44" fill="none" stroke="#e05c5c" strokeWidth="12" strokeDasharray="37 239" strokeDashoffset="-170" strokeLinecap="round" />
-            </svg>
-            <div className="donut-center">
-              <span className="donut-val">83%</span>
-              <span className="donut-lbl">avg</span>
-            </div>
-          </div>
-          <div className="donut-legend">
-            {[["#4caf6e","Healthy","67%"],["#e8a245","Fair","20%"],["#e05c5c","Poor","13%"]].map(([c,l,v]) => (
-              <div key={l} className="legend-row">
-                <span className="legend-dot" style={{background:c}} />
-                <span className="legend-lbl">{l}</span>
-                <span className="legend-val">{v}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="bottom-row">
-        <div className="alert-box">
-          <div className="chart-box-title" style={{marginBottom:16}}>Active Alerts</div>
-          {[
-            { icon:"💧", title:"Soil moisture critical — Field 3", sub:"Irrigate before 6 PM today", color:"amber" },
-            { icon:"🦠", title:"Possible leaf blight — Field 4 Soybean", sub:"Upload image for AI diagnosis", color:"red" },
-            { icon:"🌡️", title:"High temperature forecast — Wed", sub:"Shade netting recommended for seedlings", color:"amber" },
-          ].map(a => (
-            <div key={a.title} className={`alert-row ${a.color}`}>
-              <span className="alert-row-icon">{a.icon}</span>
-              <div>
-                <div className="alert-row-title">{a.title}</div>
-                <div className="alert-row-sub">{a.sub}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="recent-tasks-box">
-          <div className="chart-box-title" style={{marginBottom:16}}>Today's Tasks</div>
-          {TASKS.slice(0,4).map(t => (
-            <div key={t.id} className={`task-row ${t.done ? "done" : ""}`}>
-              <span className="task-check">{t.done ? "✓" : "○"}</span>
-              <div>
-                <div className="task-title">{t.title}</div>
-                <div className="task-time">{t.time}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── AI Chatbot ───────────────────────────────────────────────────────────────
 function AIChatbot() {
