@@ -9,6 +9,7 @@ import Scheduler from "./Scheduler";
 import ProfileModal from "./ProfileModal";
 import SettingsModal from "./SettingsModal";
 import Overview from "./Overview";
+import AIChatbot from "./AIChatbot";
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -24,110 +25,6 @@ const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
   { id: "scheduler", label: "Scheduler",         icon: "📅" },
   { id: "chatbot",   label: "AI Chatbot",        icon: "💬" },
 ];
-
-
-
-// ─── AI Chatbot ───────────────────────────────────────────────────────────────
-function AIChatbot() {
-  const [messages, setMessages] = useState([
-    { role: "assistant", text: "Namaste! I'm your Farmify AI assistant. Ask me anything about crops, soil, disease, weather, or best practices for your farm. 🌾" }
-  ]);
-  const [input, setInput]   = useState("");
-  const [loading, setLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  const SUGGESTIONS = [
-    "Best crop for black soil in May?",
-    "How to treat early blight?",
-    "When should I irrigate wheat?",
-    "What fertilizer for rice tillering?",
-  ];
-
-  const send = async (text: string) => {
-    if (!text.trim() || loading) return;
-    const userMsg = { role: "user", text };
-    setMessages(m => [...m, userMsg]);
-    setInput("");
-    setLoading(true);
-
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: "You are Farmify AI, an expert agricultural assistant for Indian farmers. You give practical, concise advice on crops, soil health, disease treatment, irrigation, fertilizers, and weather-based farming decisions. Focus on crops common to India. Keep answers clear and actionable. Use emojis sparingly for readability.",
-          messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.text })),
-        }),
-      });
-      const data = await res.json();
-      const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Please try again.";
-      setMessages(m => [...m, { role: "assistant", text: reply }]);
-    } catch {
-      setMessages(m => [...m, { role: "assistant", text: "Connection error. Please check your network and try again." }]);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
-  return (
-    <div className="view-root chatbot-root">
-      <div className="view-header">
-        <div>
-          <h1 className="view-title">AI Chatbot</h1>
-          <p className="view-sub">Ask anything about your farm — powered by Claude AI.</p>
-        </div>
-        <div className="ai-badge">⚡ Claude AI</div>
-      </div>
-
-      <div className="chat-layout">
-        <div className="chat-messages">
-          {messages.map((m, i) => (
-            <div key={i} className={`chat-bubble-wrap ${m.role}`}>
-              {m.role === "assistant" && <div className="chat-avatar">🌾</div>}
-              <div className={`chat-bubble ${m.role}`}>{m.text}</div>
-            </div>
-          ))}
-          {loading && (
-            <div className="chat-bubble-wrap assistant">
-              <div className="chat-avatar">🌾</div>
-              <div className="chat-bubble assistant typing">
-                <span className="dot-1">●</span>
-                <span className="dot-2">●</span>
-                <span className="dot-3">●</span>
-              </div>
-            </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-
-        {messages.length === 1 && (
-          <div className="chat-suggestions">
-            {SUGGESTIONS.map(s => (
-              <button key={s} className="suggestion-chip" onClick={() => send(s)}>{s}</button>
-            ))}
-          </div>
-        )}
-
-        <div className="chat-input-row">
-          <input
-            className="chat-input"
-            placeholder="Ask about crops, disease, soil, weather…"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && send(input)}
-            disabled={loading}
-          />
-          <button className="chat-send" onClick={() => send(input)} disabled={loading || !input.trim()}>↑</button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
