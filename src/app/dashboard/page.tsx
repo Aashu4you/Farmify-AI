@@ -10,10 +10,11 @@ import ProfileModal from "./ProfileModal";
 import SettingsModal from "./SettingsModal";
 import Overview from "./Overview";
 import AIChatbot from "./AIChatbot";
+import Marketplace from "./Marketplace";
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Section = "overview" | "crops" | "disease" | "weather" | "scheduler" | "chatbot";
+type Section = "overview" | "crops" | "disease" | "weather" | "scheduler" | "chatbot" | "marketplace";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -24,6 +25,7 @@ const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
   { id: "weather",   label: "Weather",           icon: "🌦️" },
   { id: "scheduler", label: "Scheduler",         icon: "📅" },
   { id: "chatbot",   label: "AI Chatbot",        icon: "💬" },
+  { id: "marketplace",  label: "Marketplace",       icon: "🏪" },
 ];
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
@@ -62,6 +64,7 @@ export default function Dashboard() {
     weather:   <Weather />,
     scheduler: <Scheduler />,
     chatbot:   <AIChatbot />,
+    marketplace: <Marketplace/>
   };
 
   return (

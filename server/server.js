@@ -9,6 +9,7 @@ import weatherRoutes from "./routes/weatherRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js"; 
 import chatRoutes from "./routes/chatRoutes.js";
+import listingRoutes from "./routes/listingRoutes.js"
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use("/api/weather", weatherRoutes);
 app.use("/api/tasks",   taskRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/listings", listingRoutes);
 
 app.get("/", (req, res) => {
   res.send("Farmify API Running");
